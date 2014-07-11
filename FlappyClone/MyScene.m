@@ -70,8 +70,12 @@
     
     SKAction *moveObstacle = [SKAction moveToX:-obstacleWidth/2 duration:2.0];
     
-    [upperObstacle runAction:moveObstacle];
-    [lowerObstacle runAction:moveObstacle];
+    [upperObstacle runAction:moveObstacle completion:^(void){
+        [upperObstacle removeFromParent];
+    }];
+    [lowerObstacle runAction:moveObstacle completion:^(void){
+        [lowerObstacle removeFromParent];
+    }];
     
     [self addChild:upperObstacle];
     [self addChild:lowerObstacle];
