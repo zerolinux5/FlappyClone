@@ -8,9 +8,13 @@
 
 #import "MyScene.h"
 
-@interface MyScene(){}
+@interface MyScene() <SKPhysicsContactDelegate>{}
 
 @property SKSpriteNode *rectangle;
+typedef enum : uint8_t {
+    ColliderTypeRectangle = 1,
+    ColliderTypeObstacle  = 2
+} ColliderType;
 
 @end
 
@@ -23,6 +27,8 @@
         self.backgroundColor = [SKColor colorWithRed:0.15 green:0.15 blue:0.3 alpha:1.0];
         
         self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:CGRectMake(0, 0, self.size.width, self.size.height)];
+        
+        self.physicsWorld.contactDelegate = self;
     }
     return self;
 }
@@ -43,6 +49,10 @@
         //gravity is going to be simulated on this node
         self.rectangle.physicsBody.affectedByGravity = YES;
         self.rectangle.physicsBody.mass = 0.5f;
+        //collision detection
+        self.rectangle.physicsBody.categoryBitMask = ColliderTypeRectangle;
+        self.rectangle.physicsBody.collisionBitMask = ColliderTypeObstacle | ColliderTypeRectangle;
+        self.rectangle.physicsBody.contactTestBitMask = ColliderTypeObstacle;
         //adding the node to the scene
         [self addChild:self.rectangle];
         SKAction *callAddObstacles = [SKAction performSelector:@selector(addObstacles) onTarget:self];
@@ -77,8 +87,24 @@
         [lowerObstacle removeFromParent];
     }];
     
+    //collision detection
+    upperObstacle.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:upperObstacle.size];
+    //we don't want this object to be animated by the physics engine
+    upperObstacle.physicsBody.dynamic = NO;
+    upperObstacle.physicsBody.categoryBitMask = ColliderTypeObstacle;
+    //same with the lower obstacle
+    lowerObstacle.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:lowerObstacle.size];
+    lowerObstacle.physicsBody.dynamic = NO;
+    lowerObstacle.physicsBody.categoryBitMask = ColliderTypeObstacle;
     [self addChild:upperObstacle];
     [self addChild:lowerObstacle];
+}
+
+-(void)didBeginContact:(SKPhysicsContact *)contact{
+    if ((contact.bodyA.categoryBitMask == ColliderTypeRectangle && contact.bodyB.categoryBitMask == ColliderTypeObstacle) || (contact.bodyB.categoryBitMask == ColliderTypeRectangle && contact.bodyA.categoryBitMask == ColliderTypeObstacle)) {
+        self.paused = YES;
+    }
+    
 }
 
 -(void)update:(CFTimeInterval)currentTime {
