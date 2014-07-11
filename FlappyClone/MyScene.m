@@ -8,6 +8,12 @@
 
 #import "MyScene.h"
 
+@interface MyScene(){}
+
+@property SKSpriteNode *rectangle;
+
+@end
+
 @implementation MyScene
 
 -(id)initWithSize:(CGSize)size {
@@ -23,22 +29,27 @@
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     /* Called when a touch begins */
-    
-    for (UITouch *touch in touches) {
+    //is rectangle different from nil
+    if (!self.rectangle) {
+        //get a single touch
+        UITouch *touch = [touches anyObject];
         //get the location of the touch
         CGPoint location = [touch locationInNode:self];
-        
-        SKSpriteNode *rectangle = [SKSpriteNode spriteNodeWithColor:[UIColor redColor] size:CGSizeMake(50, 50)];
+        self.rectangle = [SKSpriteNode spriteNodeWithColor:[UIColor redColor] size:CGSizeMake(50, 50)];
         //set the newly created node position to the position of the touch
-        rectangle.position = location;
+        self.rectangle.position = location;
         //initialize the physicsBody with the size of the rectangle
-        rectangle.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:rectangle.size];
+        self.rectangle.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:self.rectangle.size];
         //gravity is going to be simulated on this node
-        rectangle.physicsBody.affectedByGravity = YES;
+        self.rectangle.physicsBody.affectedByGravity = YES;
+        self.rectangle.physicsBody.mass = 0.5f;
         //adding the node to the scene
-        [self addChild:rectangle];
-        
+        [self addChild:self.rectangle];
     }
+    else{
+        [self.rectangle.physicsBody applyImpulse:CGVectorMake(0.0f, 250.0f)];
+    }
+    
 }
 
 -(void)update:(CFTimeInterval)currentTime {
